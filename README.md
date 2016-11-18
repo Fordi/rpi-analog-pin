@@ -5,7 +5,7 @@ and resistor as extra components.
 
 The circuit diagram:
 
-![Circuit](./circuit.svg)
+![Circuit](https://cdn.rawgit.com/Fordi/rpi-analog-pin/master/circuit.svg)
 
 To initialize, pass the pin number, minimum resistance (R1) and 
 capacitance (C1), and a sampling timeout into the constructor for Pin 
