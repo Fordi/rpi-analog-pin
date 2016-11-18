@@ -31,7 +31,7 @@ Where:
  * Rₓ - the max resistance your configuration can read
 
 `Pin` calculates this as its maxResistance field, for your convenience, 
-as `Rₓ = t/C - Rᵢ - Rₘ
+as `Rₓ = t/C - Rᵢ - Rₘ`
 
 Think about this when choosing your components; you can get higher 
 resolutions with smaller capacitance and minResistance - though, there 
