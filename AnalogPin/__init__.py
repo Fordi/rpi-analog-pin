@@ -6,6 +6,124 @@ import RPi.GPIO as GPIO
 import time
 from threading import Timer
 
+class Listener:
+    def __init__(self, handler, signal):
+        self.suspended = False
+        self.count = 0
+        self.hadler = handler
+        self.signal = signal
+
+    def sample(self, resistance):
+        self.handler(self.signal, resistance)
+
+class RateControlledListener:
+    def __init__(self, handler, signal, rate):
+        Listener.__init__(self, handler, low, high, signal, samples)
+        self.targetRate = rate
+        self.startTime = time.time()
+        self.count = 0
+
+    def sample(self, resistance):
+        self.count += 1
+        if self.count / (time.time() - self.startTime) < self.targetRate:
+            self.handler(self.signal, resistance)
+
+class RiseFallListener(Listener):
+    def __init__(self, handler, low, high, signal, samples):
+        Listener.__init__(self, handler, low, high, signal, samples)
+        self.low = low
+        self.high = high
+        self.samples = samples
+
+    def sample(self, resistance):
+        if self.suspended:
+            if resistance < low:
+                self.count += 1
+                mode = Pin.RISE
+            else:
+                self.count = 0
+        else:
+            if resistance > high:
+                self.count += 1
+                mode = Pin.FALL
+            else:
+                self.samples = 0
+        if self.count >= self.samples:
+            if (not self.suspended and (self.signal is Pin.RISE or self.signal is Pin.BOTH)) or \
+               (    self.suspended and (self.signal is Pin.FALL or self.signal is Pin.BOTH)):
+                handler(mode, resistance)
+            self.count = 0
+            self.suspended = not self.suspended
+
+class EnterExitListener(Listener):
+    def __init__(self, handler, low, high, signal, samples):
+        Listener.__init__(self, handler, low, high, signal, samples)
+        self.low = low
+        self.high = high
+        self.samples = samples
+
+    def sample(self, resistance):
+        mode = None
+        if self.suspended:
+            if resistance >= low and resistance <= high:
+                self.count += 1
+                mode = Pin.ENTER
+            else:
+                self.count = 0
+        else:
+            if resistance < low and resistance > high:
+                mode = Pin.EXIT
+                self.count += 1
+            else:
+                self.samples = 0
+        if self.count >= self.samples:
+            self.count = 0
+            self.suspended = not self.suspended
+            if (not self.suspended and (self.signal is Pin.ENTER or self.signal is Pin.TRANSIT)) or \
+               (    self.suspended and (self.signal is Pin.EXIT or self.signal is Pin.TRANSIT)):
+                handler(mode, resistance)
+
+class ChangeListener(Listener):
+    def __init__(self, handler, start, end, signal, samples):
+        Listener.__init__(self, handler, low, high, signal, samples)
+        self.history = collections.deque([], samples)
+        self.trigger = None
+        self.start = start
+        self.end = end
+        self.samples = samples
+
+    def sample(self, resistance):
+        if len(self.history) is samples:
+            self.history.popleft()
+        self.history.append(resistance)
+        if len(self.history) < samples:
+            return
+        if self.suspended is True:
+            change = resistance - self.history[0]
+        else:
+            change = resistance - self.history[len(self.history -1)]
+
+        delta = abs(change)
+
+        if self.suspended is False:
+            if (delta > self.start and self.signal is not Pin.STEADY) or \
+               (delta < self.start and self.signal is Pin.STEADY):
+                self.suspended = True
+                self.trigger = (change > 0 and (self.signal is Pin.RISE or self.signal is Pin.CHANGE)) or \
+                               (change < 0 and (self.signal is Pin.FALL or self.signal is Pin.CHANGE))
+                if self.trigger is True:
+                    handler(self.signal, Pin.START, resistance)
+        else:
+            if (delta < self.end and self.signal is not Pin.STEADY) or \
+               (delta > self.end and self.signal is Pin.STEADY):
+
+                self.suspended = False
+                if self.trigger:
+                    handler(self.signal, Pin.END, resistance)
+                self.trigger = None
+
+
+
 class Pin:
     # From http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/raspberry-pi/gpio-pin-electrical-specifications
     PI_INTERNAL_RESISTANCE = 100 # Ω
@@ -21,6 +139,8 @@ class Pin:
         self.now = None
         self.timeout = timeout
         self.timer = None
+
+        self.listeners = []
         # Calculate max resistance from timeout
         # Given:
         #    T = self.timeout >= RC
@@ -100,6 +220,10 @@ class Pin:
             #   t / C - Rₘ - Rᵢ = Rₛ
             self.resistance = self.time / self.capacitance - self.minResistance - self.PI_INTERNAL_RESISTANCE
 
+        # Notify event listeners
+        for listener in self.listeners:
+            listener.sample(self.resistance)
+
         # Reset the pin
         self.reset()
 
@@ -126,3 +250,22 @@ class Pin:
             self.pinTimedOut();
         else:
             self.pinWentHigh();
+        return self.resistance
+
+    def each(self, handler, rate=None):
+        listener = RateControlledListener(handler, Pin.READ, rate)
+        self.listeners.push(listener)
+        return self
+
+    def listen(self, handler, low, high, event, samples=1):
+        if event is Pin.RISE or event is Pin.FALL or event is Pin.BOTH:
+            listener = RiseFallListener(handler, low, high, event, samples)
+        elif event is Pin.ENTER or event is Pin.EXIT or event is Pin.TRANSIT:
+            listener = EnterExitListener(handler, low, high, event, samples)
+        self.listeners.push(listener)
+        return self
+
+    def feel(self, handler, start, end, event, samples=1):
+        listener = ChangeListener(handler, start, end, event, samples)
+        self.listeners.push(listener)
+        return self
