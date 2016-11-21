@@ -1,5 +1,5 @@
 # coding=utf-8
-# Derived from circuit and code at: 
+# Derived from circuit and code at:
 # http://www.raspberrypi-spy.co.uk/2012/08/reading-analogue-sensors-with-one-gpio-pin/
 
 import RPi.GPIO as GPIO
@@ -10,7 +10,7 @@ class Pin:
     # From http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/raspberry-pi/gpio-pin-electrical-specifications
     PI_INTERNAL_RESISTANCE = 100 # Ω
     # Defaul capacitance is 1 μF
-    def __init__(self, pin, minResistance=0, capacitance=0.0000001, timeout=0.03333):
+    def __init__(self, pin, minResistance=2200, capacitance=0.0000001, timeout=0.03333):
         # Setup state variables
         self.pin = pin
         self.open = True
@@ -72,7 +72,7 @@ class Pin:
         # Listen for the rising edge event
         # Minimum bouncetime, as a capacitor isn't going to bounce, and we want fast results
         GPIO.add_event_detect(self.pin, GPIO.RISING, callback=self.pinWentHigh, bouncetime=1)
-        
+
         # Set a timer; if it times out, the the circuit is considered open
         self.timer = Timer(self.timeout, self.pinTimedOut)
         self.timer.start();
@@ -83,7 +83,7 @@ class Pin:
             self.open = True
             self.time = None
             self.resistance = None
-            
+
         else:
             self.open = False
             self.time = time
@@ -119,7 +119,7 @@ class Pin:
         # Cancel the async events; they conflict, and would double-tap
         GPIO.remove_event_detect(self.pin)
         self.timer.cancel()
-        
+
         if timeout is None:
             timeout = self.timeout
         if GPIO.wait_for_edge(self.pin, GPIO.RISING, timeout=int(timeout * 1000)) is None:
