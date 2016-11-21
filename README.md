@@ -47,6 +47,7 @@ value of `aPin.resistance` as it needs to.
 
 * Add customizable event handlers:
 
+	.
 	# Triggers an event when `resistance` enters, exits, or crosses a 
 	#    given range
 	Pin#listen(
