@@ -52,7 +52,7 @@ value of `aPin.resistance` as it needs to.
 The library also supports event handling, where you can specify what sort of
 behavior you're looking to capture.
 
-listen(callback, low, high, signal, [samples=1])
+#### listen(callback, low, high, signal, [samples=1])
 
 Listen for when `resistance` enters, exits, or crosses over a given range
 
@@ -93,7 +93,9 @@ Listen for when `resistance` enters, exits, or crosses over a given range
 
 > samples [default=1]: number of samples matching condition before trigger
 
-feel(handler, start, end, signal, [samples=1])
+-----
+
+#### feel(handler, start, end, signal, [samples=1])
 
 Listen for when resistance moves more than a starting threshold, and then
 when it moves less than an ending threshold
@@ -119,3 +121,12 @@ when it moves less than an ending threshold
 >    Trigger a `STEADY_START` event when resistance changes by less than
 >    `thresholdStart` for at least `samples`; trigger a `STEADY_END` when
 >    resistance changes by more than `thresholdEnd` over one sample
+
+-----
+
+#### each(handler, [rate=None])
+
+Invoke callback on each measurement, with optional rate limit
+
+> handler: callback to trigger
+> rate: maximum rate, in Hz, at which you want to invoke the handler.

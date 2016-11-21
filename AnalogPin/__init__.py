@@ -133,6 +133,7 @@ class Pin:
     TRANSIT = 6
     CHANGE=7
     STEADY=8
+    READ=9
 
     # From http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/raspberry-pi/gpio-pin-electrical-specifications
     PI_INTERNAL_RESISTANCE = 100 # Ω
