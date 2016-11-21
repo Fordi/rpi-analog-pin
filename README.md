@@ -129,4 +129,5 @@ when it moves less than an ending threshold
 Invoke callback on each measurement, with optional rate limit
 
 > handler: callback to trigger
+
 > rate: maximum rate, in Hz, at which you want to invoke the handler.
