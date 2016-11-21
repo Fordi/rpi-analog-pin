@@ -47,6 +47,7 @@ value of `aPin.resistance` as it needs to.
 
 * Add customizable event handlers:
 
+```
 
         # Triggers an event when `resistance` enters, exits, or crosses a 
 	#    given range
@@ -98,3 +99,4 @@ value of `aPin.resistance` as it needs to.
 		rate # in Hz; average desired sample rate; should be lower than or equal to
 		     # 1/((internal + minimum + maximum) * capacitance + internal * capacitance)
         )
+```
