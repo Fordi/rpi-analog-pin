@@ -125,6 +125,15 @@ class ChangeListener(Listener):
 
 
 class Pin:
+    RISE = 1
+    FALL = 2
+    BOTH = 3
+    ENTER = 4
+    EXIT = 5
+    TRANSIT = 6
+    CHANGE=7
+    STEADY=8
+
     # From http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/raspberry-pi/gpio-pin-electrical-specifications
     PI_INTERNAL_RESISTANCE = 100 # Ω
     # Defaul capacitance is 1 μF
