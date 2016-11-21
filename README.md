@@ -1,14 +1,14 @@
 Based on [this article](http://www.raspberrypi-spy.co.uk/2012/08/reading-analogue-sensors-with-one-gpio-pin/),
-this tiny library encapsulates the basics needed to quickly and easily 
-read a pin off the Raspberry Pi in an analog way, using just a capacitor 
+this tiny library encapsulates the basics needed to quickly and easily
+read a pin off the Raspberry Pi in an analog way, using just a capacitor
 and resistor as extra components.
 
 The circuit diagram:
 
 ![Circuit](https://cdn.rawgit.com/Fordi/rpi-analog-pin/master/circuit.svg)
 
-To initialize, pass the pin number, minimum resistance (R1) and 
-capacitance (C1), and a sampling timeout into the constructor for Pin 
+To initialize, pass the pin number, minimum resistance (R1) and
+capacitance (C1), and a sampling timeout into the constructor for Pin
 (defaults are shown):
 
 	# Remember to set your GPIO pin addressing mode
@@ -17,7 +17,7 @@ capacitance (C1), and a sampling timeout into the constructor for Pin
 	aPin = Pin(RPI_PIN_NUM, minResistance=2200, capacitance=0.000001, timeout=0.03333)
 
 The sampling timeout is important; the smaller the value, the better
-the sampling time resolution is going to be, but the smaller your 
+the sampling time resolution is going to be, but the smaller your
 resistance range:
 
 	t = (Rᵢ + Rₘ + Rₓ)C
@@ -30,17 +30,21 @@ Where:
  * C  - passed as capacitance, the value of C1
  * Rₓ - the max resistance your configuration can read
 
-`Pin` calculates this as its maxResistance field, for your convenience, 
+`Pin` calculates this as its maxResistance field, for your convenience,
 as `Rₓ = t/C - Rᵢ - Rₘ`
 
-Think about this when choosing your components; you can get higher 
-resolutions with smaller capacitance and minResistance - though, there 
+Think about this when choosing your components; you can get higher
+resolutions with smaller capacitance and minResistance - though, there
 are limitations placed on you by the resolution of the RPi's timer.  The
-defaults represent a reasonable trade-off with a readable range of 
+defaults represent a reasonable trade-off with a readable range of
 0..31 kΩ, and a time resolution of 30Hz.
 
+To make things easier for you, I built a little [weblet](https://fordi.github.io/)
+you can use to calculate what your constructor should look like given a set of
+components.
+
 After the `Pin` is initialized, it will continuously read the resistance
-connected to it in the background.  Your program can simply check the 
+connected to it in the background.  Your program can simply check the
 value of `aPin.resistance` as it needs to.
 
 ### TODO
@@ -49,7 +53,7 @@ value of `aPin.resistance` as it needs to.
 
 ```
 
-        # Triggers an event when `resistance` enters, exits, or crosses a 
+        # Triggers an event when `resistance` enters, exits, or crosses a
 	#    given range
 	Pin#listen(
 		callback, # handler to call
@@ -58,15 +62,15 @@ value of `aPin.resistance` as it needs to.
 		type,
 		    # Pin.RISE
 		    #	Trigger when resistance rises past `high` for `samples`;
-		    #       will not trigger again until resistance falls 
+		    #       will not trigger again until resistance falls
 		    #       past `low` for `samples`
 		    # Pin.FALL
 		    #	Trigger when resistance falls past `low` for `samples`;
-		    #       will not trigger again until resistance falls 
+		    #       will not trigger again until resistance falls
 		    #       past `low` for `samples`
 		    # Pin.ENTER
 		    #   Trigger when resistance falls within the selected range for
-		    #       `samples`; will not trigger again until resistance 
+		    #       `samples`; will not trigger again until resistance
 		    #       falls outside of range for `samples`
 		    # Pin.EXIT
 		    #   Trigger when resistance falls outside the selected range for
@@ -82,10 +86,10 @@ value of `aPin.resistance` as it needs to.
 		thresholdEnd, # change in resistance to trigger end event
 		type
 		    # Pin.CHANGE/Pin.RISE/Pin.FALL
-		    #   Trigger a `CHANGE_START` event when resistance changes by at 
+		    #   Trigger a `CHANGE_START` event when resistance changes by at
 		    #   least `thresholdStart` over `samples`; trigger a `CHANGE_END` when
-		    #   resistance changes by less than `thresholdEnd` over one sample.  
-		    #   Pin.RISE and Pin.FALL only trigger the events when the change 
+		    #   resistance changes by less than `thresholdEnd` over one sample.
+		    #   Pin.RISE and Pin.FALL only trigger the events when the change
 		    #   is positive and negative, respectively
 		    # Pin.STEADY
 		    #   Trigger a `STEADY_START` event when resistance changes by less than
